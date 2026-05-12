@@ -1,6 +1,11 @@
 # Stage 1: Build Frontend
 FROM node:20-alpine AS frontend-builder
 WORKDIR /app
+
+# Install PHP in build stage for Wayfinder plugin
+RUN apk add --no-cache php82 php82-cli php82-mbstring php82-xml php82-tokenizer php82-fileinfo php82-json php82-dom php82-xmlwriter \
+    && ln -s /usr/bin/php82 /usr/bin/php82-cli || true \
+    && ln -sf /usr/bin/php82 /usr/bin/php
 COPY package*.json ./
 RUN npm install
 COPY . .
