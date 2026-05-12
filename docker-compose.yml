@@ -14,7 +14,7 @@ services:
       DB_CONNECTION: pgsql
       DB_HOST: db
       DB_PORT: 5432
-      DB_DATABASE: jg_organization
+      DB_DATABASE: jg-organization-db
       DB_USERNAME: postgres
       DB_PASSWORD: password
     volumes:
@@ -27,7 +27,7 @@ services:
     container_name: jg_db
     restart: always
     environment:
-      POSTGRES_DB: jg_organization
+      POSTGRES_DB: jg-organization-db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
