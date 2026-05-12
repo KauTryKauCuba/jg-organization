@@ -2,7 +2,7 @@
 FROM php:8.2-fpm-alpine AS frontend-builder
 WORKDIR /app
 
-# Install Node.js and System Dependencies for PHP extensions
+# Install Node.js, Composer, and System Dependencies
 RUN apk add --no-cache \
     nodejs \
     npm \
@@ -14,12 +14,20 @@ RUN apk add --no-cache \
     oniguruma-dev \
     curl
 
-# Install PHP Extensions needed for Artisan commands during build
+# Install PHP Extensions
 RUN docker-php-ext-install pdo_pgsql mbstring zip bcmath
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 COPY . .
 
-# Install dependencies
+# Initialize Laravel for the Wayfinder plugin
+RUN cp .env.example .env && \
+    composer install --no-interaction --no-scripts && \
+    php artisan key:generate
+
+# Install Node dependencies and build
 RUN npm install
 RUN npm run build
 RUN npm run build:ssr
@@ -54,7 +62,7 @@ COPY --from=frontend-builder /app/bootstrap/ssr ./bootstrap/ssr
 # Set Permissions
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
-# Install PHP dependencies
+# Install PHP dependencies (final optimization)
 RUN composer install --no-dev --optimize-autoloader
 
 # Expose ports
