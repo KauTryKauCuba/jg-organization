@@ -1,0 +1,16 @@
+services:
+  database:
+    image: postgres:15
+    container_name: jg_organization_db
+    restart: always
+    environment:
+      POSTGRES_DB: jg_organization
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5435:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
