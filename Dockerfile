@@ -1,18 +1,30 @@
-# Stage 1: Build Frontend
-FROM node:20-alpine AS frontend-builder
+# Stage 1: Build Frontend & Assets
+FROM php:8.2-fpm-alpine AS frontend-builder
 WORKDIR /app
 
-# Install PHP in build stage for Wayfinder plugin
-RUN apk add --no-cache php82 php82-cli php82-mbstring php82-xml php82-tokenizer php82-fileinfo php82-json php82-dom php82-xmlwriter \
-    && ln -s /usr/bin/php82 /usr/bin/php82-cli || true \
-    && ln -sf /usr/bin/php82 /usr/bin/php
-COPY package*.json ./
-RUN npm install
+# Install Node.js and System Dependencies for PHP extensions
+RUN apk add --no-cache \
+    nodejs \
+    npm \
+    postgresql-dev \
+    libzip-dev \
+    zip \
+    unzip \
+    git \
+    oniguruma-dev \
+    curl
+
+# Install PHP Extensions needed for Artisan commands during build
+RUN docker-php-ext-install pdo_pgsql mbstring zip bcmath
+
 COPY . .
+
+# Install dependencies
+RUN npm install
 RUN npm run build
 RUN npm run build:ssr
 
-# Stage 2: Build Backend
+# Stage 2: Final Production Image
 FROM php:8.2-fpm-alpine
 WORKDIR /var/www
 
@@ -35,6 +47,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Copy Application code
 COPY . .
+# Copy built assets from builder stage
 COPY --from=frontend-builder /app/public/build ./public/build
 COPY --from=frontend-builder /app/bootstrap/ssr ./bootstrap/ssr
 
