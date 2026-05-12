@@ -8,12 +8,9 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# Wait for DB to be ready
-echo "⏳ Waiting for database connection..."
-until php artisan db:monitor --databases=pgsql; do
-  echo "Retrying DB connection..."
-  sleep 2
-done
+# Wait for DB to be ready using PHP's built-in capability
+echo "⏳ Waiting for database connection (db:5432)..."
+php -r "while(!@fsockopen('db', 5432)) { echo 'Waiting for DB...'; sleep(2); }"
 
 # Run migrations
 echo "📂 Running migrations..."
@@ -23,10 +20,10 @@ php artisan migrate --force
 echo "🐘 Starting PHP-FPM..."
 php-fpm -D
 
-# Start SSR Server in background (if needed)
+# Start SSR Server in background
 echo "⚛️ Starting Inertia SSR..."
 php artisan inertia:start-ssr &
 
 # Start Nginx in FOREGROUND to keep container alive
-echo "🌐 Starting Nginx..."
+echo "🌐 Starting Nginx on port 8003..."
 nginx -g "daemon off;"
